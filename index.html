@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Dashboard TV Live</title>
+<style>
+:root{--bg:#f4f4f2;--card:#fff;--tx:#1b1b1a;--mu:#76766f;--ln:#e3e3df;--ac:#2f6fed;--hl:#e8f0fe;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#111113;--card:#1a1a1d;--tx:#ececea;--mu:#8d8d88;--ln:#2a2a2e;--ac:#6b9bff;--hl:#1e2a45}}
+:root[data-theme="dark"]{--bg:#111113;--card:#1a1a1d;--tx:#ececea;--mu:#8d8d88;--ln:#2a2a2e;--ac:#6b9bff;--hl:#1e2a45}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box;margin:0}
+html,body{height:100%}
+body{background:var(--bg);color:var(--tx);font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;padding:2vh 2vw}
+.g{display:grid;grid-template-columns:1fr 1.1fr 1.1fr;gap:1.5vw;height:100%}
+.c{background:var(--card);border:1px solid var(--ln);border-radius:14px;padding:2vh 1.4vw;overflow:auto;min-width:0}
+h2{font-size:max(12px,1.5vh);letter-spacing:.12em;text-transform:uppercase;color:var(--mu);font-weight:600;margin:2vh 0 1vh}
+h2:first-child{margin-top:0}
+#t{font-size:max(44px,11vh);font-weight:300;line-height:1;font-variant-numeric:tabular-nums}
+#t small{font-size:.35em;color:var(--mu)}
+#d{color:var(--mu);font-size:max(14px,2.2vh);margin-top:1vh}
+.n{margin-top:2.5vh;padding:1.4vh 1vw;border-radius:10px;background:var(--hl)}
+.n b{display:block;font-size:max(18px,3.4vh);font-weight:600}
+.n span{color:var(--mu);font-size:max(12px,1.9vh)}
+.r{display:flex;justify-content:space-between;padding:1vh .4vw;font-size:max(14px,2.5vh);border-bottom:1px solid var(--ln);font-variant-numeric:tabular-nums}
+.r.on{color:var(--ac);font-weight:600}
+.r:last-child{border:0}
+.m{padding:1.1vh 0;border-bottom:1px solid var(--ln);font-size:max(13px,2.2vh)}
+.m:last-child{border:0}
+.m .w{color:var(--mu);font-size:.8em}
+.m .v{font-weight:600}
+.res{display:flex;justify-content:space-between;padding:.7vh 0;font-size:max(12px,1.9vh);color:var(--mu)}
+.res i{font-style:normal;font-weight:700;margin-left:.6em}
+.W{color:#2e9e5b}.L{color:#c0443e}.D{color:var(--mu)}
+table{width:100%;border-collapse:collapse;font-size:max(11px,1.95vh);font-variant-numeric:tabular-nums}
+td,th{padding:.55vh .3vw;text-align:center}
+th{color:var(--mu);font-weight:500;font-size:.85em}
+td:nth-child(2),th:nth-child(2){text-align:left;width:46%}
+tr.me td{background:var(--hl);font-weight:600}
+td:last-child{font-weight:700}
+.ft{color:var(--mu);font-size:max(10px,1.5vh);margin-top:1vh}
+@media (max-width:900px){body{padding:3vw}.g{grid-template-columns:1fr;height:auto}}
+</style>
+</head>
+<body>
+<div class="g">
+  <section class="c">
+    <div id="t">--:--</div>
+    <div id="d"></div>
+    <div class="n"><span>Sholat berikutnya</span><b id="nx">—</b><span id="cd"></span></div>
+    <h2>Waktu sholat · Bekasi</h2>
+    <div id="p"></div>
+    <div class="ft">Dihitung di perangkat, metode Kemenag RI (Subuh 20°, Isya 18°).</div>
+  </section>
+  <section class="c">
+    <h2>Barça · pertandingan berikutnya</h2>
+    <div id="f"></div>
+    <h2>Hasil terakhir</h2>
+    <div id="h"></div>
+    <div class="ft">Jam tayang dalam WIB. <span class="up">Data contoh.</span></div>
+  </section>
+  <section class="c">
+    <h2>Klasemen LaLiga</h2>
+    <table id="s"></table>
+    <div class="ft">M = main, M/S/K = menang/seri/kalah. <span class="up">Data contoh.</span></div>
+  </section>
+</div>
+<script>
+var KEY="e6c947c62f914dd8b36d9cee3e25d988",API="https://api.football-data.org/v4",TEAM=81;
+var TZ="Asia/Jakarta",LAT=-6.2383,LNG=106.9756,OFF=7;
+var FIX=[["2026-10-25T20:00:00Z","vs","Real Madrid"],["2026-10-31T20:00:00Z","vs","Alavés"],["2026-11-08T20:00:00Z","@","Atlético Madrid"],["2026-11-22T13:00:00Z","vs","Villarreal"],["2026-11-29T19:00:00Z","@","Deportivo La Coruña"]];
+var RES=[["Levante","T",2,4],["Racing","H",7,2],["Sevilla","T",1,3],["Getafe","H",3,0],["Betis","T",2,5]];
+var TAB=[["FC Barcelona",9,0,0,27],["Atlético Madrid",7,1,1,22],["Real Madrid",7,2,0,21],["Real Betis",6,2,1,19],["Real Sociedad",5,3,1,16],["Sevilla",4,3,2,14],["Alavés",3,4,2,11],["Celta Vigo",2,2,5,11],["Deportivo",2,2,5,11],["Osasuna",3,4,2,11],["Levante",2,3,4,10],["Villarreal",2,4,3,9],["Athletic Bilbao",2,3,3,9],["Rayo Vallecano",2,3,3,9],["Getafe",2,4,3,9],["Espanyol",2,5,2,8],["Racing Santander",2,5,2,8],["Elche",1,4,4,7],["Valencia",1,5,3,6],["Málaga",0,5,4,4]];
+// TAB: [tim, menang, seri, kalah, poin] — kolom seri/kalah sudah dipetakan: lihat render
+var R=Math.PI/180;
+function fx(h){return ((h%24)+24)%24}
+function hm(h){h=fx(h+2/60*0);var m=Math.round(h*60);m=((m%1440)+1440)%1440;return ("0"+Math.floor(m/60)).slice(-2)+":"+("0"+m%60).slice(-2)}
+function jakNow(){var p=new Intl.DateTimeFormat("en-GB",{timeZone:TZ,year:"numeric",month:"numeric",day:"numeric",hour:"numeric",minute:"numeric",second:"numeric",hour12:false}).formatToParts(new Date()),o={};p.forEach(function(x){o[x.type]=+x.value});return o}
+function prayer(y,mo,da){
+  var jd=Date.UTC(y,mo-1,da,12)/864e5+2440587.5,D=jd-2451545,g=(357.529+.98560028*D)*R,q=((280.459+.98564736*D)%360+360)%360,
+  L=(q+1.915*Math.sin(g)+.02*Math.sin(2*g))*R,e=(23.439-4e-7*D)*R,
+  RA=Math.atan2(Math.cos(e)*Math.sin(L),Math.cos(L))/R/15,d=Math.asin(Math.sin(e)*Math.sin(L)),
+  eq=q/15-fx(RA);if(eq>12)eq-=24;if(eq<-12)eq+=24;
+  var dh=12+OFF-LNG/15-eq,lat=LAT*R;
+  function T(a){return Math.acos((-Math.sin(a*R)-Math.sin(d)*Math.sin(lat))/(Math.cos(d)*Math.cos(lat)))/R/15}
+  var A=Math.atan(1/(1+Math.tan(Math.abs(lat-d))));
+  var asr=Math.acos((Math.sin(A)-Math.sin(d)*Math.sin(lat))/(Math.cos(d)*Math.cos(lat)))/R/15,ih=2/60;
+  return [["Subuh",dh-T(20)+ih],["Terbit",dh-T(.833)],["Dzuhur",dh+ih],["Ashar",dh+asr+ih],["Maghrib",dh+T(.833)+ih],["Isya",dh+T(18)+ih]];
+}
+function tick(){
+  var n=jakNow(),hh=("0"+(n.hour%24)).slice(-2),mm=("0"+n.minute).slice(-2),ss=("0"+n.second).slice(-2);
+  document.getElementById("t").innerHTML=hh+":"+mm+"<small>:"+ss+"</small>";
+  document.getElementById("d").textContent=new Intl.DateTimeFormat("id-ID",{timeZone:TZ,weekday:"long",day:"numeric",month:"long",year:"numeric"}).format(new Date());
+  var P=prayer(n.year,n.month,n.day),cur=(n.hour%24)+n.minute/60+n.second/3600,nxt=-1,list=[0,2,3,4,5];
+  for(var i=0;i<list.length;i++){if(P[list[i]][1]>cur){nxt=list[i];break}}
+  var html="",tgt;
+  P.forEach(function(x,i){html+='<div class="r'+(i===nxt?" on":"")+'"><span>'+x[0]+'</span><span>'+hm(x[1])+'</span></div>'});
+  document.getElementById("p").innerHTML=html;
+  if(nxt<0){var T2=prayer(n.year,n.month,n.day+1);tgt=T2[0][1]+24;document.getElementById("nx").textContent="Subuh "+hm(T2[0][1])}
+  else{tgt=P[nxt][1];document.getElementById("nx").textContent=P[nxt][0]+" "+hm(P[nxt][1])}
+  var s=Math.max(0,Math.round((tgt-cur)*3600)),H=Math.floor(s/3600),M=Math.floor(s%3600/60);
+  document.getElementById("cd").textContent=H+" jam "+M+" menit lagi";
+}
+function fix(){
+  var now=Date.now(),out="",k=0;
+  FIX.forEach(function(f){if(k>=5||new Date(f[0]).getTime()<now)return;k++;
+    var dt=new Date(f[0]),w=new Intl.DateTimeFormat("id-ID",{timeZone:TZ,weekday:"short",day:"numeric",month:"short"}).format(dt),
+    tm=new Intl.DateTimeFormat("id-ID",{timeZone:TZ,hour:"2-digit",minute:"2-digit",hour12:false}).format(dt).replace(".",":");
+    out+='<div class="m"><div class="w">'+w+" · "+tm+' WIB · '+(f[1]==="vs"?"Kandang":"Tandang")+(f[3]?" · "+f[3]:"")+'</div><div class="v">Barça '+(f[1]==="vs"?"vs":"@")+" "+f[2]+"</div></div>"});
+  document.getElementById("f").innerHTML=out||'<div class="m">Belum ada jadwal terbaru.</div>';
+  var h="";RES.forEach(function(r){var b=r[1]==="H"?r[2]:r[3],o=r[1]==="H"?r[3]:r[2],c=b>o?"W":b<o?"L":"D",l=b>o?"M":b<o?"K":"S";h+='<div class="res"><span>'+(r[1]==="H"?"vs ":"@ ")+r[0]+'</span><span>'+b+"–"+o+'<i class="'+c+'">'+l+'</i></span></div>'});
+  document.getElementById("h").innerHTML=h;
+}
+function table(){
+  var t="<tr><th>#</th><th>Tim</th><th>M</th><th>M</th><th>S</th><th>K</th><th>Poin</th></tr>";
+  TAB.forEach(function(r,i){t+='<tr'+(/^(FC Barcelona|Barça)$/.test(r[0])?' class="me"':'')+'><td>'+(i+1)+'</td><td>'+r[0]+'</td><td>'+(r[1]+r[2]+r[3])+'</td><td>'+r[1]+'</td><td>'+r[3]+'</td><td>'+r[2]+'</td><td>'+r[4]+'</td></tr>'});
+  document.getElementById("s").innerHTML=t;
+}
+function note(t){var e=document.querySelectorAll(".up");for(var i=0;i<e.length;i++)e[i].textContent=t}
+function stamp(){note("Live · diperbarui "+new Intl.DateTimeFormat("id-ID",{timeZone:TZ,hour:"2-digit",minute:"2-digit",hour12:false}).format(new Date()).replace(".",":")+" WIB")}
+function fail(){note("Gagal memuat, menampilkan data terakhir.")}
+function get(path,cb){var x=new XMLHttpRequest();x.open("GET",API+path);x.setRequestHeader("X-Auth-Token",KEY);x.onload=function(){if(x.status===200){try{cb(JSON.parse(x.responseText))}catch(e){fail()}}else fail()};x.onerror=fail;x.send()}
+function nm(t){return t.shortName||t.name}
+function mine(m){return [nm(m.homeTeam.id===TEAM?m.awayTeam:m.homeTeam),m.homeTeam.id===TEAM?"H":"T"]}
+function load(){
+  if(KEY.indexOf("ISI")===0){note("Data contoh: isi API key dulu.");return}
+  get("/competitions/PD/standings",function(d){TAB=d.standings[0].table.map(function(r){return [nm(r.team),r.won,r.lost,r.draw,r.points]});table();stamp()});
+  get("/teams/"+TEAM+"/matches?status=SCHEDULED,TIMED",function(d){FIX=d.matches.slice(0,6).map(function(m){var a=mine(m);return [m.utcDate,a[1]==="H"?"vs":"@",a[0],m.competition.code]});fix();stamp()});
+  get("/teams/"+TEAM+"/matches?status=FINISHED",function(d){RES=d.matches.slice(-5).reverse().map(function(m){var a=mine(m);return [a[0],a[1],m.score.fullTime.home,m.score.fullTime.away]});fix();stamp()});
+}
+fix();table();tick();setInterval(tick,1000);setInterval(fix,600000);load();setInterval(load,1800000);
+</script>
+</body>
+</html>
