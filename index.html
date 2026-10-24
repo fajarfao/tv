@@ -66,7 +66,7 @@ td:last-child{font-weight:700}
   </section>
 </div>
 <script>
-var KEY="e6c947c62f914dd8b36d9cee3e25d988",API="https://api.football-data.org/v4",TEAM=81;
+var TEAM=81;
 var TZ="Asia/Jakarta",LAT=-6.2383,LNG=106.9756,OFF=7;
 var FIX=[["2026-10-25T20:00:00Z","vs","Real Madrid"],["2026-10-31T20:00:00Z","vs","Alavés"],["2026-11-08T20:00:00Z","@","Atlético Madrid"],["2026-11-22T13:00:00Z","vs","Villarreal"],["2026-11-29T19:00:00Z","@","Deportivo La Coruña"]];
 var RES=[["Levante","T",2,4],["Racing","H",7,2],["Sevilla","T",1,3],["Getafe","H",3,0],["Betis","T",2,5]];
@@ -119,15 +119,10 @@ function table(){
 function note(t){var e=document.querySelectorAll(".up");for(var i=0;i<e.length;i++)e[i].textContent=t}
 function stamp(){note("Live · diperbarui "+new Intl.DateTimeFormat("id-ID",{timeZone:TZ,hour:"2-digit",minute:"2-digit",hour12:false}).format(new Date()).replace(".",":")+" WIB")}
 function fail(){note("Gagal memuat, menampilkan data terakhir.")}
-function get(path,cb){var x=new XMLHttpRequest();x.open("GET",API+path);x.setRequestHeader("X-Auth-Token",KEY);x.onload=function(){if(x.status===200){try{cb(JSON.parse(x.responseText))}catch(e){fail()}}else fail()};x.onerror=fail;x.send()}
-function nm(t){return t.shortName||t.name}
-function mine(m){return [nm(m.homeTeam.id===TEAM?m.awayTeam:m.homeTeam),m.homeTeam.id===TEAM?"H":"T"]}
 function load(){
-  if(KEY.indexOf("ISI")===0){note("Data contoh: isi API key dulu.");return}
-  get("/competitions/PD/standings",function(d){TAB=d.standings[0].table.map(function(r){return [nm(r.team),r.won,r.lost,r.draw,r.points]});table();stamp()});
-  get("/teams/"+TEAM+"/matches?status=SCHEDULED,TIMED",function(d){FIX=d.matches.slice(0,6).map(function(m){var a=mine(m);return [m.utcDate,a[1]==="H"?"vs":"@",a[0],m.competition.code]});fix();stamp()});
-  get("/teams/"+TEAM+"/matches?status=FINISHED",function(d){RES=d.matches.slice(-5).reverse().map(function(m){var a=mine(m);return [a[0],a[1],m.score.fullTime.home,m.score.fullTime.away]});fix();stamp()});
-}
+  var x=new XMLHttpRequest();x.open("GET","data.json?t="+Date.now());
+  x.onload=function(){if(x.status!==200){fail();return}try{var d=JSON.parse(x.responseText);TAB=d.table;FIX=d.fixtures;RES=d.results;table();fix();note("Live · data "+d.updated)}catch(e){fail()}};
+  x.onerror=fail;x.send()}
 fix();table();tick();setInterval(tick,1000);setInterval(fix,600000);load();setInterval(load,1800000);
 </script>
 </body>
