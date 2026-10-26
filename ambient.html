@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ambient TV</title>
+<style>
+*{box-sizing:border-box;margin:0}
+html,body{height:100%;overflow:hidden}
+body{background-color:#1b1f4a;color:#fff;font-family:Roboto,system-ui,-apple-system,"Segoe UI",sans-serif;transition:background-color 20s linear}
+#v{position:absolute;inset:0;background:radial-gradient(ellipse at 20% 15%,rgba(255,255,255,.16),rgba(255,255,255,0) 55%),radial-gradient(ellipse at 90% 100%,rgba(0,0,0,.45),rgba(0,0,0,0) 60%)}
+.sh{position:absolute;border-radius:50%;background:rgba(255,255,255,.06)}
+.a{width:70vh;height:70vh;right:-12vh;top:-18vh;animation:d1 120s ease-in-out infinite alternate}
+.b{width:46vh;height:46vh;left:38vw;bottom:-20vh;background:rgba(255,255,255,.045);animation:d2 150s ease-in-out infinite alternate}
+@keyframes d1{to{transform:translate(-6vh,8vh)}}
+@keyframes d2{to{transform:translate(8vh,-5vh)}}
+main{position:relative;height:100%;padding:7vh 6vw;display:flex;flex-direction:column;justify-content:space-between;transition:transform 5s ease}
+#clock{font-size:26vh;font-weight:100;line-height:.95;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+#date{font-size:max(16px,3.4vh);font-weight:300;opacity:.8;margin-top:1.5vh}
+.bar{display:flex;gap:2.5vw;align-items:stretch}
+.card{background:rgba(255,255,255,.12);border-radius:3vh;padding:3vh 2.2vw}
+.pr{flex:1.35}
+.mt{flex:1}
+.lb{font-size:max(11px,1.7vh);letter-spacing:.18em;text-transform:uppercase;opacity:.65;margin-bottom:2vh}
+.ts{display:flex;justify-content:space-between}
+.t{text-align:center;opacity:.6}
+.t b{display:block;font-size:max(20px,5vh);font-weight:300;font-variant-numeric:tabular-nums}
+.t span{font-size:max(11px,1.9vh)}
+.t.on{opacity:1}
+.t.on b{font-weight:500}
+.t.on span{font-weight:700}
+.cd{margin-top:2vh;font-size:max(13px,2.2vh);opacity:.8}
+.mn{font-size:max(22px,5.2vh);font-weight:500;line-height:1.1}
+.ms{font-size:max(13px,2.3vh);opacity:.8;margin-top:1.2vh}
+</style>
+</head>
+<body>
+<div id="v"></div><div class="sh a"></div><div class="sh b"></div>
+<main id="m">
+  <div>
+    <div id="clock">--:--</div>
+    <div id="date"></div>
+  </div>
+  <div class="bar">
+    <div class="card pr"><div class="lb">Waktu sholat · Bekasi</div><div class="ts" id="ts"></div><div class="cd" id="cd"></div></div>
+    <div class="card mt"><div class="lb">Barça · pertandingan berikutnya</div><div class="mn" id="mn">—</div><div class="ms" id="ms"></div></div>
+  </div>
+</main>
+<script>
+var TZ="Asia/Jakarta",LAT=-6.2383,LNG=106.9756,OFF=7,R=Math.PI/180;
+var FIX=[["2026-10-25T20:00:00Z","vs","Real Madrid","LaLiga"],["2026-10-31T20:00:00Z","vs","Alavés","LaLiga"],["2026-11-08T20:00:00Z","@","Atlético Madrid","LaLiga"]];
+var BANDS=[[0,"#1b1f4a"],[4,"#5a3a63"],[6,"#b0654a"],[10,"#2f6f9f"],[15,"#a8641f"],[17,"#b5452e"],[19,"#1b1f4a"]];
+function fx(h){return ((h%24)+24)%24}
+function hm(h){var m=Math.round(fx(h)*60)%1440;return ("0"+Math.floor(m/60)).slice(-2)+":"+("0"+m%60).slice(-2)}
+function jak(){var p=new Intl.DateTimeFormat("en-GB",{timeZone:TZ,year:"numeric",month:"numeric",day:"numeric",hour:"numeric",minute:"numeric",second:"numeric",hour12:false}).formatToParts(new Date()),o={};p.forEach(function(x){o[x.type]=+x.value});o.hour=o.hour%24;return o}
+function prayer(y,mo,da){
+  var jd=Date.UTC(y,mo-1,da,12)/864e5+2440587.5,D=jd-2451545,g=(357.529+.98560028*D)*R,q=((280.459+.98564736*D)%360+360)%360,
+  L=(q+1.915*Math.sin(g)+.02*Math.sin(2*g))*R,e=(23.439-4e-7*D)*R,
+  RA=Math.atan2(Math.cos(e)*Math.sin(L),Math.cos(L))/R/15,d=Math.asin(Math.sin(e)*Math.sin(L)),
+  eq=q/15-fx(RA);if(eq>12)eq-=24;if(eq<-12)eq+=24;
+  var dh=12+OFF-LNG/15-eq,lat=LAT*R,ih=2/60;
+  function T(a){return Math.acos((-Math.sin(a*R)-Math.sin(d)*Math.sin(lat))/(Math.cos(d)*Math.cos(lat)))/R/15}
+  var A=Math.atan(1/(1+Math.tan(Math.abs(lat-d)))),
+  asr=Math.acos((Math.sin(A)-Math.sin(d)*Math.sin(lat))/(Math.cos(d)*Math.cos(lat)))/R/15;
+  return [["Subuh",dh-T(20)+ih],["Dzuhur",dh+ih],["Ashar",dh+asr+ih],["Maghrib",dh+T(.833)+ih],["Isya",dh+T(18)+ih]];
+}
+function $(i){return document.getElementById(i)}
+function dur(s){var d=Math.floor(s/86400),h=Math.floor(s%86400/3600),m=Math.floor(s%3600/60);return d>0?d+" hari "+h+" jam":h>0?h+" jam "+m+" menit":m+" menit"}
+var lastMin=-1;
+function tick(){
+  var n=jak(),cur=n.hour+n.minute/60+n.second/3600;
+  $("clock").textContent=("0"+n.hour).slice(-2)+":"+("0"+n.minute).slice(-2);
+  if(n.minute!==lastMin){
+    lastMin=n.minute;
+    $("date").textContent=new Intl.DateTimeFormat("id-ID",{timeZone:TZ,weekday:"long",day:"numeric",month:"long",year:"numeric"}).format(new Date());
+    var c=BANDS[0][1];for(var i=0;i<BANDS.length;i++){if(cur>=BANDS[i][0])c=BANDS[i][1]}
+    document.body.style.backgroundColor=c;
+    $("m").style.transform="translate("+((n.minute%5)*2-4)+"px,"+((n.minute%3)*2-2)+"px)";
+    prayers(n,cur);match();
+  }
+  var s=prayers.tgt?Math.max(0,Math.round((prayers.tgt-cur)*3600)):0;
+  if(prayers.nm)$("cd").textContent=prayers.nm+" dalam "+dur(s);
+}
+function prayers(n,cur){
+  var P=prayer(n.year,n.month,n.day),nx=-1,h="";
+  for(var i=0;i<P.length;i++){if(P[i][1]>cur){nx=i;break}}
+  P.forEach(function(x,i){h+='<div class="t'+(i===nx?" on":"")+'"><b>'+hm(x[1])+'</b><span>'+x[0]+'</span></div>'});
+  $("ts").innerHTML=h;
+  if(nx<0){var T2=prayer(n.year,n.month,n.day+1);prayers.tgt=T2[0][1]+24;prayers.nm="Subuh"}
+  else{prayers.tgt=P[nx][1];prayers.nm=P[nx][0]}
+}
+function match(){
+  var now=Date.now(),f=null;
+  for(var i=0;i<FIX.length;i++){if(new Date(FIX[i][0]).getTime()>now-6e6){f=FIX[i];break}}
+  if(!f){$("mn").textContent="Belum ada jadwal";$("ms").textContent="";return}
+  var t=new Date(f[0]),home=f[1]==="vs",
+  d=new Intl.DateTimeFormat("id-ID",{timeZone:TZ,weekday:"short",day:"numeric",month:"short"}).format(t),
+  w=new Intl.DateTimeFormat("id-ID",{timeZone:TZ,hour:"2-digit",minute:"2-digit",hour12:false}).format(t).replace(".",":"),
+  s=Math.round((t.getTime()-now)/1000);
+  $("mn").textContent=(home?"vs ":"@ ")+f[2];
+  $("ms").textContent=d+" · "+w+" WIB"+(f[3]?" · "+f[3]:"")+" · "+(s>0?dur(s)+" lagi":"sedang berlangsung");
+}
+function load(){
+  var x=new XMLHttpRequest();x.open("GET","data.json?t="+Date.now());
+  x.onload=function(){if(x.status!==200)return;try{var d=JSON.parse(x.responseText);if(d.fixtures&&d.fixtures.length){FIX=d.fixtures;lastMin=-1}}catch(e){}};
+  x.send();
+}
+tick();load();setInterval(tick,1000);setInterval(load,1800000);
+</script>
+</body>
+</html>
